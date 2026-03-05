@@ -1,0 +1,14 @@
+prefix=./ffmpeg_rk_build
+exec_prefix=${prefix}
+libdir=./ffmpeg_rk_build/lib
+includedir=./ffmpeg_rk_build/include
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 58.29.100
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil 
+Libs.private: -pthread -lm -latomic
+Cflags: -I${includedir}
