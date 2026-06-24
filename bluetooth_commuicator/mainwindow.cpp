@@ -28,6 +28,19 @@ MainWindow::MainWindow(QWidget *parent)
     ui->disconnectButton->setEnabled(false);
     ui->writeButton->setEnabled(false);
 
+
+    // sppSocket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol, this);
+    // isSPPScanning = false;
+
+    // // SPP信号槽连接
+    // connect(sppSocket, &QBluetoothSocket::readyRead, this, &MainWindow::readSPPData);
+    // connect(sppSocket, &QBluetoothSocket::stateChanged, this, &MainWindow::sppSocketStateChanged);
+    // connect(sppSocket, &QBluetoothSocket::errorOccurred, this, &MainWindow::sppSocketError);
+
+    // // 初始化SPP UI状态
+    // ui->disconnectSPPButton->setEnabled(false);
+    // ui->sendSPPDataButton->setEnabled(false);
+
     logMessage("应用程序启动完成");
 }
 
@@ -41,6 +54,12 @@ MainWindow::~MainWindow()
 
     qDeleteAll(services);
     delete discoveryAgent;
+
+    // if (sppSocket) {
+    //     sppSocket->close();
+    //     delete sppSocket;
+    // }
+
     delete ui;
 }
 
