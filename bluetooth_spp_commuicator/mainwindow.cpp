@@ -56,48 +56,73 @@ void MainWindow::on_scanButton_clicked()
         discoveryAgent->stop();
     }
 
-    // 开始扫描，只扫描BLE设备
-    // discoveryAgent->setLowEnergyDiscoveryTimeout(0);
     discoveryAgent->start(QBluetoothDeviceDiscoveryAgent::ClassicMethod);
 
     ui->scanButton->setEnabled(false);
 }
 
-// void MainWindow::deviceConnected()
-// {
-//     logMessage("设备连接成功，延迟1秒后开始发现服务...");
-//     ui->disconnectButton->setEnabled(true);
-//     ui->scanButton->setEnabled(false);
-
-//     // 关键：连接成功后延迟1秒再发现服务（避免设备未就绪）
-//     QTimer::singleShot(1000, this, [this]() {
-//         // 强制设置发现模式为"所有服务"
-//         // controller->discoverServices();
-//         logMessage("已触发全量服务发现");
-//     });
-// }
-
 // 发现设备时的处理
 void MainWindow::deviceDiscovered(const QBluetoothDeviceInfo &info)
 {
+    // QString deviceName = info.name();
+    // if (deviceName.isEmpty()) return;
+
+    // // QString prefix = deviceName.left(3);
+    // // if((prefix == "BCI") || (prefix == "BLE") || (prefix == "Zep") || (prefix == "CRS"))
+    // // {
+    // if (info.coreConfigurations() & QBluetoothDeviceInfo::BaseRateAndEnhancedDataRateCoreConfiguration) {
+    //     QString deviceInfo = QString("%1 (%2)").arg(info.name()).arg(info.address().toString());
+    //     int rssi = info.rssi();
+
+    //     if (rssi != 0) {
+    //         deviceInfo += QString(" RSSI: %1 dBm").arg(rssi);
+    //     }
+    //     QListWidgetItem *item = new QListWidgetItem(deviceInfo);
+    //     item->setData(Qt::UserRole, QVariant::fromValue(info));
+    //     ui->deviceList->addItem(item);
+
+    //     logMessage(QString("发现SPP设备: %1").arg(deviceInfo));
+    // }
+
+    // QString deviceName = info.name();
+    // if (deviceName.isEmpty()) return;
+
+    // // 1. 获取设备的蓝牙核心配置
+    // QBluetoothDeviceInfo::CoreConfigurations configs = info.coreConfigurations();
+
+    // // 2. 精准匹配：只要设备支持经典蓝牙速率（BaseRate），就说明它可能是 SPP 设备
+    // bool isClassicBluetooth = (configs & QBluetoothDeviceInfo::BaseRateCoreConfiguration) ||
+    //                           (configs & QBluetoothDeviceInfo::BaseRateAndLowEnergyCoreConfiguration);
+
+    // if (isClassicBluetooth) {
+    //     QString deviceInfo = QString("%1 (%2)").arg(info.name()).arg(info.address().toString());
+    //     int rssi = info.rssi();
+
+    //     if (rssi != 0) {
+    //         deviceInfo += QString(" RSSI: %1 dBm").arg(rssi);
+    //     }
+
+    //     // 避免列表重复添加
+    //     if (ui->deviceList->findItems(deviceInfo, Qt::MatchExactly).isEmpty()) {
+    //         QListWidgetItem *item = new QListWidgetItem(deviceInfo);
+    //         item->setData(Qt::UserRole, QVariant::fromValue(info));
+    //         ui->deviceList->addItem(item);
+
+    //         logMessage(QString("发现SPP设备: %1").arg(deviceInfo));
+    //     }
+    // }
+
     QString deviceName = info.name();
-    if (deviceName.isEmpty()) return;
+    if (deviceName.isEmpty()) return; // 仅过滤掉无名设备
 
-    QString prefix = deviceName.left(3);
-    // if((prefix == "BCI") || (prefix == "BLE") || (prefix == "Zep") || (prefix == "CRS"))
-    // {
-        QString deviceInfo = QString("%1 (%2)").arg(info.name()).arg(info.address().toString());
-        int rssi = info.rssi();
+    QString deviceInfo = QString("%1 (%2)").arg(deviceName).arg(info.address().toString());
 
-        if (rssi != 0) {
-            deviceInfo += QString(" RSSI: %1 dBm").arg(rssi);
-        }
+    if (ui->deviceList->findItems(deviceInfo, Qt::MatchExactly).isEmpty()) {
         QListWidgetItem *item = new QListWidgetItem(deviceInfo);
         item->setData(Qt::UserRole, QVariant::fromValue(info));
         ui->deviceList->addItem(item);
-
-        logMessage(QString("发现SPP设备: %1").arg(deviceInfo));
-    // }
+        logMessage(QString("发现蓝牙设备: %1").arg(deviceInfo));
+    }
 
 }
 
@@ -130,88 +155,115 @@ void MainWindow::scanError(QBluetoothDeviceDiscoveryAgent::Error error)
 // 双击设备进行连接（修复 conn/errConn 未初始化警告 + ConnectionRefusedError 枚举）
 void MainWindow::on_deviceList_itemDoubleClicked(QListWidgetItem *item)
 {
-    if (sppSocket->isOpen()) {
-        sppSocket->close();
+    // if (sppSocket->isOpen()) {
+    //     sppSocket->close();
+    // }
+
+    // // 获取设备信息
+    // QBluetoothDeviceInfo info = item->data(Qt::UserRole).value<QBluetoothDeviceInfo>();
+    // logMessage(QString("开始扫描设备 %1 的所有服务...").arg(info.name()));
+
+    // // 1. 创建服务发现代理（指定要扫描的设备地址）
+    // QBluetoothServiceDiscoveryAgent *serviceAgent = new QBluetoothServiceDiscoveryAgent(info.address(), this);
+    // // 服务计数器（统计扫描到的服务数）
+    // int serviceCount = 0;
+
+    // QTimer::singleShot(10000, serviceAgent, &QBluetoothServiceDiscoveryAgent::stop);
+    // // 2. 每发现一个服务的处理逻辑（加mutable允许修改捕获的serviceCount）
+    // connect(serviceAgent, &QBluetoothServiceDiscoveryAgent::serviceDiscovered, this, [=](const QBluetoothServiceInfo &service) mutable {
+    //     serviceCount++;
+    //     // 打印服务详情（调试用）
+    //     QString serviceName = service.serviceName().isEmpty() ? "未知服务" : service.serviceName();
+    //     QString serviceUuid = service.serviceUuid().toString();
+    //     logMessage(QString("发现服务：%1 | UUID：%2").arg(serviceName).arg(serviceUuid));
+
+    //     // 修复点1：Qt6中SerialPort的正确枚举值 + 修复protocol()为socketProtocol()
+    //     bool isSPPService =
+    //         // Qt6正确的SerialPort UUID枚举值（ServiceClassUuid::SerialPort）
+    //         (service.serviceUuid() == QBluetoothUuid(QBluetoothUuid::ServiceClassUuid::SerialPort))
+    //         // Qt6中获取RFCOMM协议（替换原protocol()为socketProtocol()）
+    //         || (service.socketProtocol() == QBluetoothServiceInfo::RfcommProtocol);
+
+    //     if (isSPPService) {
+    //         logMessage(QString("匹配到SPP服务，开始连接 %1...").arg(info.name()));
+    //         // 连接匹配到的SPP服务
+    //         sppSocket->connectToService(info.address(), service.serviceUuid(), QIODevice::ReadWrite);
+    //         serviceAgent->stop(); // 找到服务后停止扫描
+    //         // serviceAgent->deleteLater(); // 释放资源
+    //     }
+    // });
+
+    // // 3. 服务扫描完成（未找到SPP服务）
+    // connect(serviceAgent, &QBluetoothServiceDiscoveryAgent::finished, this, [=]() {
+    //     if (!sppSocket->isOpen()) {
+    //         // logMessage(QString("服务扫描完成！设备 %1 未找到SPP服务，共扫描到 %2 个服务").arg(info.name()).arg(serviceCount));
+    //         // logMessage("尝试直接连接RFCOMM通道1（兜底方案）...");
+
+    //         // // Qt6异步连接RFCOMM通道1（无waitForConnected）
+    //         // QBluetoothAddress addr = info.address();
+    //         // sppSocket->connectToService(addr, 1);
+
+    //         // // 修复点1：解决变量未初始化问题（动态分配Connection，避免自身捕获）
+    //         // // 监听连接成功
+    //         // QMetaObject::Connection* connPtr = new QMetaObject::Connection;
+    //         // *connPtr = connect(sppSocket, &QBluetoothSocket::connected, this, [=]() {
+    //         //     logMessage("RFCOMM通道1连接成功！");
+    //         //     // 延迟解绑并释放指针
+    //         //     QTimer::singleShot(0, this, [connPtr]() {
+    //         //         disconnect(*connPtr);
+    //         //         delete connPtr;
+    //         //     });
+    //         // }, Qt::UniqueConnection);
+
+    //         // // 监听连接失败（修复枚举值错误：移除ConnectionRefusedError，改用Qt6兼容逻辑）
+    //         // QMetaObject::Connection* errConnPtr = new QMetaObject::Connection;
+    //         // *errConnPtr = connect(sppSocket, &QBluetoothSocket::errorOccurred, this, [=](QBluetoothSocket::SocketError error) {
+    //         //     // 修复点2：Qt6中无ConnectionRefusedError，替换为OperationError + 错误字符串兜底
+    //         //     QString errorMsg;
+    //         //     if (error == QBluetoothSocket::SocketError::OperationError) { // Qt6替代ConnectionRefusedError的枚举
+    //         //         errorMsg = "连接被拒绝/操作失败";
+    //         //     } else if (error == QBluetoothSocket::SocketError::ServiceNotFoundError) {
+    //         //         errorMsg = "服务未找到";
+    //         //     } else {
+    //         //         errorMsg = sppSocket->errorString(); // 兜底使用系统错误字符串
+    //         //     }
+    //         //     logMessage("RFCOMM通道1连接失败：" + errorMsg);
+
+    //         //     // 延迟解绑并释放指针
+    //         //     QTimer::singleShot(0, this, [errConnPtr]() {
+    //         //         disconnect(*errConnPtr);
+    //         //         delete errConnPtr;
+    //         //     });
+    //         // }, Qt::UniqueConnection);
+    //         logMessage("未找到SPP服务，尝试标准串口UUID直接连接");
+    //         sppSocket->connectToService(info.address(), QBluetoothUuid(QBluetoothUuid::ServiceClassUuid::SerialPort), QIODevice::ReadWrite);
+    //     }
+    //     serviceAgent->deleteLater();
+    // });
+
+    // // 扫描错误捕获
+    // connect(serviceAgent, &QBluetoothServiceDiscoveryAgent::errorOccurred, this, [=](QBluetoothServiceDiscoveryAgent::Error error) {
+    //     logMessage(QString("服务扫描错误：%1").arg(serviceAgent->errorString()));
+    //     serviceAgent->deleteLater();
+    // });
+
+    // logMessage("启动FullDiscovery服务扫描");
+    // serviceAgent->start(QBluetoothServiceDiscoveryAgent::FullDiscovery);
+
+    if (sppSocket->state() != QBluetoothSocket::SocketState::UnconnectedState) {
+        sppSocket->disconnectFromService();
     }
 
-    // 获取设备信息
+    // 1. 获取选中的设备信息
     QBluetoothDeviceInfo info = item->data(Qt::UserRole).value<QBluetoothDeviceInfo>();
-    logMessage(QString("开始扫描设备 %1 的所有服务...").arg(info.name()));
+    logMessage(QString("正在尝试直接连接设备: %1 (%2)...").arg(info.name()).arg(info.address().toString()));
 
-    // 1. 创建服务发现代理（指定要扫描的设备地址）
-    QBluetoothServiceDiscoveryAgent *serviceAgent = new QBluetoothServiceDiscoveryAgent(info.address(), this);
-    // 服务计数器（统计扫描到的服务数）
-    int serviceCount = 0;
+    // 2. 使用经典蓝牙 SPP 标准串口 UUID 强行连接
+    // 自定义的 SPP UUID 值为 "00007033-0000-1000-8000-00805F9B34FB"
+    QBluetoothUuid sppUuid(QBluetoothUuid::ServiceClassUuid::BarcoSppService);
 
-    // 2. 每发现一个服务的处理逻辑（加mutable允许修改捕获的serviceCount）
-    connect(serviceAgent, &QBluetoothServiceDiscoveryAgent::serviceDiscovered, this, [=](const QBluetoothServiceInfo &service) mutable {
-        serviceCount++; // 现在可修改（mutable生效）
-        // 打印服务详情（调试用）
-        QString serviceName = service.serviceName().isEmpty() ? "未知服务" : service.serviceName();
-        QString serviceUuid = service.serviceUuid().toString();
-        logMessage(QString("发现服务：%1 | UUID：%2").arg(serviceName).arg(serviceUuid));
-
-        // 修复点1：Qt6中SerialPort的正确枚举值 + 修复protocol()为socketProtocol()
-        bool isSPPService =
-            // Qt6正确的SerialPort UUID枚举值（ServiceClassUuid::SerialPort）
-            (service.serviceUuid() == QBluetoothUuid(QBluetoothUuid::ServiceClassUuid::SerialPort))
-            // Qt6中获取RFCOMM协议（替换原protocol()为socketProtocol()）
-            || (service.socketProtocol() == QBluetoothServiceInfo::RfcommProtocol);
-
-        if (isSPPService) {
-            logMessage(QString("匹配到SPP服务，开始连接 %1...").arg(info.name()));
-            // 连接匹配到的SPP服务
-            sppSocket->connectToService(info.address(), service.serviceUuid(), QIODevice::ReadWrite);
-            serviceAgent->stop(); // 找到服务后停止扫描
-            serviceAgent->deleteLater(); // 释放资源
-        }
-    });
-
-    // 3. 服务扫描完成（未找到SPP服务）
-    connect(serviceAgent, &QBluetoothServiceDiscoveryAgent::finished, this, [=]() {
-        if (!sppSocket->isOpen()) {
-            logMessage(QString("服务扫描完成！设备 %1 未找到SPP服务，共扫描到 %2 个服务").arg(info.name()).arg(serviceCount));
-            logMessage("尝试直接连接RFCOMM通道1（兜底方案）...");
-
-            // Qt6异步连接RFCOMM通道1（无waitForConnected）
-            QBluetoothAddress addr = info.address();
-            sppSocket->connectToService(addr, 1);
-
-            // 修复点1：解决变量未初始化问题（动态分配Connection，避免自身捕获）
-            // 监听连接成功
-            QMetaObject::Connection* connPtr = new QMetaObject::Connection;
-            *connPtr = connect(sppSocket, &QBluetoothSocket::connected, this, [=]() {
-                logMessage("RFCOMM通道1连接成功！");
-                // 延迟解绑并释放指针
-                QTimer::singleShot(0, this, [connPtr]() {
-                    disconnect(*connPtr);
-                    delete connPtr;
-                });
-            }, Qt::UniqueConnection);
-
-            // 监听连接失败（修复枚举值错误：移除ConnectionRefusedError，改用Qt6兼容逻辑）
-            QMetaObject::Connection* errConnPtr = new QMetaObject::Connection;
-            *errConnPtr = connect(sppSocket, &QBluetoothSocket::errorOccurred, this, [=](QBluetoothSocket::SocketError error) {
-                // 修复点2：Qt6中无ConnectionRefusedError，替换为OperationError + 错误字符串兜底
-                QString errorMsg;
-                if (error == QBluetoothSocket::OperationError) { // Qt6替代ConnectionRefusedError的枚举
-                    errorMsg = "连接被拒绝/操作失败";
-                } else if (error == QBluetoothSocket::ServiceNotFoundError) {
-                    errorMsg = "服务未找到";
-                } else {
-                    errorMsg = sppSocket->errorString(); // 兜底使用系统错误字符串
-                }
-                logMessage("RFCOMM通道1连接失败：" + errorMsg);
-
-                // 延迟解绑并释放指针
-                QTimer::singleShot(0, this, [errConnPtr]() {
-                    disconnect(*errConnPtr);
-                    delete errConnPtr;
-                });
-            }, Qt::UniqueConnection);
-        }
-        serviceAgent->deleteLater();
-    });
+    // 3. 异步发起连接
+    sppSocket->connectToService(info.address(), sppUuid, QIODevice::ReadWrite);
 }
 
 // 连接错误（修复 ConnectionRefusedError 枚举值）
@@ -258,15 +310,15 @@ void MainWindow::socketError(QBluetoothSocket::SocketError error)
 // 断开连接按钮
 void MainWindow::on_disconnectButton_clicked()
 {
-    if (sppSocket->isOpen()) {
-        sppSocket->close();
+    if (sppSocket->state() != QBluetoothSocket::SocketState::UnconnectedState) {
+        sppSocket->disconnectFromService();
     }
 }
 
 // 设备连接成功
 void MainWindow::socketConnected()
 {
-    logMessage("设备连接成功，开始发现服务...");
+    logMessage("设备连接成功！串口通道已建立，可以开始收发数据。");
     ui->disconnectButton->setEnabled(true);
     ui->scanButton->setEnabled(false);
     ui->writeButton->setEnabled(true);
@@ -278,18 +330,13 @@ void MainWindow::socketDisconnected()
     logMessage("设备已断开连接");
     ui->disconnectButton->setEnabled(false);
     ui->scanButton->setEnabled(true);
-    // ui->serviceList->clear();
-    // ui->charList->clear();
     ui->writeButton->setEnabled(false);
-
-    // qDeleteAll(services);
-    // services.clear();
 }
 
 // 读取SPP串口数据
 void MainWindow::readSocketData()
 {
-    if (!sppSocket->isOpen()) return;
+    if (sppSocket->state() != QBluetoothSocket::SocketState::ConnectedState) return;
 
     QByteArray data = sppSocket->readAll();
     if (data.isEmpty()) return;
@@ -310,7 +357,10 @@ void MainWindow::readSocketData()
 // 写入按钮点击事件
 void MainWindow::on_writeButton_clicked()
 {
-    if (!sppSocket->isOpen()) return;
+    if (sppSocket->state() != QBluetoothSocket::SocketState::ConnectedState) {
+        logMessage("数据发送失败：蓝牙未处于连接状态");
+        return;
+    }
 
     // 获取要写入的值
     QByteArray value;
@@ -324,7 +374,9 @@ void MainWindow::on_writeButton_clicked()
 
     qint64 bytesWritten = sppSocket->write(value);
     if (bytesWritten > 0) {
-        logMessage(QString("发送数据（十六进制）: %1 | （字符串）: %2").arg(value.toHex(' ').toUpper()).arg(QString(value)));
+        logMessage(QString("发送数据（十六进制）: %1 | （字符串）: %2")
+                       .arg(value.toHex(' ').toUpper())
+                       .arg(QString(value)));
     } else {
         logMessage("数据发送失败");
     }
