@@ -22,7 +22,7 @@
         <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
-           <string>BLE设备</string>
+           <string>SPP设备</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>

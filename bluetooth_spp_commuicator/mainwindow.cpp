@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    setWindowTitle("Qt6上位机");
+    setWindowTitle("SPP上位机");
 
     discoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
 
@@ -81,7 +81,7 @@ void MainWindow::deviceDiscovered(const QBluetoothDeviceInfo &info)
 // 扫描完成
 void MainWindow::scanFinished()
 {
-    logMessage(QString("扫描完成，共发现 %1 个BLE设备").arg(ui->deviceList->count()));
+    logMessage(QString("扫描完成，共发现 %1 个SPP设备").arg(ui->deviceList->count()));
     ui->scanButton->setEnabled(true);
 }
 
@@ -104,7 +104,6 @@ void MainWindow::scanError(QBluetoothDeviceDiscoveryAgent::Error error)
     ui->scanButton->setEnabled(true);
 }
 
-// 双击设备进行连接（修复 conn/errConn 未初始化警告 + ConnectionRefusedError 枚举）
 void MainWindow::on_deviceList_itemDoubleClicked(QListWidgetItem *item)
 {
     if (sppSocket->state() != QBluetoothSocket::SocketState::UnconnectedState) {
@@ -116,11 +115,15 @@ void MainWindow::on_deviceList_itemDoubleClicked(QListWidgetItem *item)
     logMessage(QString("正在尝试直接连接设备: %1 (%2)...").arg(info.name()).arg(info.address().toString()));
 
     // 2. 使用经典蓝牙 SPP 标准串口 UUID 强行连接
-    // 自定义的 SPP UUID 值为 "00007033-0000-1000-8000-00805F9B34FB"
+    // 自定义的 SPP UUID 值为 "00007133-0000-1000-8000-00805F9B34FB"
     QBluetoothUuid sppUuid(QBluetoothUuid::ServiceClassUuid::BarcoSppService);
 
     // 3. 异步发起连接
     sppSocket->connectToService(info.address(), sppUuid, QIODevice::ReadWrite);
+
+    // QBluetoothServiceInfo info = item->data(Qt::UserRole).value<QBluetoothServiceInfo>();
+
+    // sppSocket->connectToService(info, QIODevice::ReadWrite);
 }
 
 // 连接错误（修复 ConnectionRefusedError 枚举值）

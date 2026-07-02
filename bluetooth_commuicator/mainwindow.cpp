@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    setWindowTitle("Qt6 BLE上位机");
+    setWindowTitle("BLE上位机");
 
     // 初始化扫描代理
     discoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
