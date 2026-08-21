@@ -148,8 +148,12 @@ void MainWindow::on_openBt_clicked()
         baudRate=QSerialPort::Baud57600;
     else if(ui->baundrateCb->currentText()=="115200")
         baudRate=QSerialPort::Baud115200;
-    else
+    else if(ui->baundrateCb->currentText()=="921600")
+        baudRate=QSerialPort::Baud921600;
+    else if(ui->baundrateCb->currentText()=="1152000")
         baudRate=QSerialPort::Baud1152000;
+    else
+        baudRate=QSerialPort::Baud2000000;
 
     if(ui->databitCb->currentText()=="5")
         dataBits=QSerialPort::Data5;
